@@ -54,7 +54,7 @@ create policy "stack admin sales" on public.stack_sales for all to authenticated
 
 create or replace function public.stack_stats(days int default 30) returns json
 language sql stable security definer set search_path = public as $$
-  select case when not public.is_admin() then null else json_build_object(
+  select case when not public.stack_is_admin() then null else json_build_object(
     'daily', (
       select coalesce(json_agg(json_build_object('day', to_char(g.day,'YYYY-MM-DD'),
         'views', (select count(*) from stack_events e where e.kind='view' and e.at >= g.day and e.at < g.day + interval '1 day'),

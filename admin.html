@@ -135,12 +135,12 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 <div class="gate" id="gate">
   <form id="login">
     <div class="brand"><i aria-hidden="true"><span></span><span></span><span></span></i><h1>Stack Method Admin</h1></div>
-    <h2>Sign in</h2>
+    <h2 id="gateTitle">Sign in</h2>
     <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div>
     <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
-    <button type="submit" id="loginBtn">Sign in</button>
+    <div class="savebar"><button type="submit" id="loginBtn">Sign in</button><button type="button" class="ghost small" id="modeBtn">First time? Create your login</button></div>
     <p class="msg" id="gateMsg" role="status"></p>
-    <p class="dim" style="font-size:.9rem;margin-top:10px">Use the same owner login as the Medic Hero admin.</p>
+    <p class="dim" id="gateHelp" style="font-size:.9rem;margin-top:10px">Owner: use your Medic Hero admin login. Partner: create your login with the email the owner added.</p>
   </form>
 </div>
 
@@ -153,6 +153,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
       <button role="tab" aria-selected="false" data-tab="words">Words on the site</button>
       <button role="tab" aria-selected="false" data-tab="seo">Google and sharing</button>
       <button role="tab" aria-selected="false" data-tab="sales">Sales</button>
+      <button role="tab" aria-selected="false" data-tab="team" id="teamTab" hidden>Team logins</button>
     </div>
     <div class="who"><span id="whoami"></span><button class="ghost small" id="outBtn" type="button">Sign out</button></div>
   </aside>
@@ -265,6 +266,21 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
         <p class="empty" id="salesEmpty" hidden>No sales logged yet.</p>
       </div>
     </section>
+
+    <!-- TEAM -->
+    <section id="tab-team" hidden>
+      <div class="head"><div><h2>Team logins</h2><p class="dim">People you add here can open this admin and nothing else. Only you can see this screen.</p></div></div>
+      <div class="panel">
+        <h3>Add a person</h3>
+        <div class="field"><label for="teamEmail">Their email</label><input id="teamEmail" type="email" autocomplete="off"><span class="hint">Then send them learntospeak.courses/admin.html. They tap "First time? Create your login", use this same email and pick their own password.</span></div>
+        <div class="savebar"><button id="addTeam" type="button">Give access</button><span class="msg" id="teamMsg" role="status"></span></div>
+      </div>
+      <div class="panel">
+        <h3>Who has access</h3>
+        <div class="scroll"><table><tbody id="teamBody"></tbody></table></div>
+        <p class="empty" id="teamEmpty" hidden>Just you so far.</p>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -287,19 +303,32 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     if(!sb){say($('#gateMsg'),'Could not load the sign-in service. Check your connection and reload.','bad');return}
     var s=(await sb.auth.getSession()).data.session;
     if(!s) return;
-    var r=await sb.rpc('is_admin');
+    var r=await sb.rpc('stack_is_admin');
     if(r.error){say($('#gateMsg'),'Could not check this login: '+r.error.message,'bad');return}
-    if(!r.data){await sb.auth.signOut();say($('#gateMsg'),'That login is not the site owner’s, so it cannot open the admin.','bad');return}
+    if(!r.data){await sb.auth.signOut();say($('#gateMsg'),'This email has not been given access yet. Ask the owner to add it under Team logins, then sign in again.','bad');return}
+    var own=await sb.rpc('is_admin'); if(own.data){$('#teamTab').hidden=false; loadTeam()}
     $('#whoami').textContent=s.user.email||'';
     $('#gate').hidden=true; $('#app').hidden=false;
     await loadSettings(); loadStats(); loadSales(); audit();
   }
   $('#login').addEventListener('submit',async function(e){
-    e.preventDefault(); say($('#gateMsg'),'Signing in...');
+    e.preventDefault();
+    if(creating){
+      if($('#password').value.length<8){say($('#gateMsg'),'Pick a password with at least 8 characters.','bad');return}
+      say($('#gateMsg'),'Creating your login...');
+      var c=await sb.auth.signUp({email:$('#email').value.trim(),password:$('#password').value,options:{emailRedirectTo:location.origin+'/admin.html'}});
+      if(c.error){say($('#gateMsg'),'Could not create the login: '+c.error.message,'bad');return}
+      if(c.data&&c.data.session){say($('#gateMsg'),'');boot();return}
+      setMode(false); say($('#gateMsg'),'Login created. Open the email we just sent, tap the link, then sign in here.','good'); return;
+    }
+    say($('#gateMsg'),'Signing in...');
     var r=await sb.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});
     if(r.error){say($('#gateMsg'),'Sign in failed: '+r.error.message,'bad');return}
     say($('#gateMsg'),''); boot();
   });
+  var creating=false;
+  function setMode(on){creating=on;$('#gateTitle').textContent=on?'Create your login':'Sign in';$('#loginBtn').textContent=on?'Create login':'Sign in';$('#modeBtn').textContent=on?'I already have a login':'First time? Create your login';$('#password').autocomplete=on?'new-password':'current-password';say($('#gateMsg'),'')}
+  $('#modeBtn').addEventListener('click',function(){setMode(!creating)});
   $('#outBtn').addEventListener('click',async function(){await sb.auth.signOut();location.reload()});
 
   /* ---------- tabs ---------- */
@@ -465,6 +494,28 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     var r=await sb.from('stack_sales').insert({product:$('#saleProduct').value,amount:amount,note:$('#saleNote').value.trim()||null});
     if(r.error){say($('#saleMsg'),'Not added: '+r.error.message,'bad');return}
     say($('#saleMsg'),'Sale added.','good'); $('#saleAmount').value=''; $('#saleNote').value=''; loadSales(); loadStats();
+  });
+
+  /* ---------- team ---------- */
+  async function loadTeam(){
+    var r=await sb.from('stack_admins').select('email,added_at').order('added_at');
+    var body=$('#teamBody'); body.textContent='';
+    if(r.error){$('#teamEmpty').hidden=false;$('#teamEmpty').textContent='Could not load the list: '+r.error.message;return}
+    $('#teamEmpty').hidden=(r.data||[]).length>0; $('#teamEmpty').textContent='Just you so far.';
+    (r.data||[]).forEach(function(p){
+      var tr=document.createElement('tr'), a=document.createElement('td'), x=document.createElement('td'); a.textContent=p.email; x.className='num';
+      var b=document.createElement('button'); b.className='ghost small'; b.type='button'; b.textContent='Remove access';
+      b.addEventListener('click',async function(){b.disabled=true;var d=await sb.from('stack_admins').delete().eq('email',p.email);if(d.error){b.disabled=false;say($('#teamMsg'),'Not removed: '+d.error.message,'bad')}else{say($('#teamMsg'),'Access removed.','good');loadTeam()}});
+      x.appendChild(b); tr.appendChild(a); tr.appendChild(x); body.appendChild(tr);
+    });
+  }
+  $('#addTeam').addEventListener('click',async function(){
+    var em=$('#teamEmail').value.trim().toLowerCase();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){say($('#teamMsg'),'Type a full email address.','bad');return}
+    say($('#teamMsg'),'Adding...');
+    var r=await sb.from('stack_admins').upsert({email:em});
+    if(r.error){say($('#teamMsg'),'Not added: '+r.error.message,'bad');return}
+    say($('#teamMsg'),'Access given. Send them the admin link.','good'); $('#teamEmail').value=''; loadTeam();
   });
 
   boot();
