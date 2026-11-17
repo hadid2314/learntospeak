@@ -9,6 +9,18 @@
 <meta property="og:description" content="Speak a new language in 1,000 words. One chapter a night.">
 <meta property="og:image" content="https://learntospeak.courses/img/spanish.jpg">
 <meta name="theme-color" content="#F4994B">
+<link rel="canonical" href="https://learntospeak.courses/">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ItemList","name":"The Stack Method language books","itemListElement":[
+{"@type":"ListItem","position":1,"item":{"@type":"Book","name":"Learn to Speak Spanish in 1,000 Words","inLanguage":"en","bookFormat":"https://schema.org/EBook","image":"https://learntospeak.courses/img/spanish.jpg","publisher":{"@type":"Organization","name":"The Stack Method"}}},
+{"@type":"ListItem","position":2,"item":{"@type":"Book","name":"Learn to Speak French in 1,000 Words","inLanguage":"en","bookFormat":"https://schema.org/EBook","image":"https://learntospeak.courses/img/french.jpg","publisher":{"@type":"Organization","name":"The Stack Method"}}},
+{"@type":"ListItem","position":3,"item":{"@type":"Book","name":"Learn to Speak German in 1,000 Words","inLanguage":"en","bookFormat":"https://schema.org/EBook","image":"https://learntospeak.courses/img/german.jpg","publisher":{"@type":"Organization","name":"The Stack Method"}}},
+{"@type":"ListItem","position":4,"item":{"@type":"Book","name":"Learn to Speak Urdu in 1,000 Words","inLanguage":"en","bookFormat":"https://schema.org/EBook","image":"https://learntospeak.courses/img/urdu.jpg","publisher":{"@type":"Organization","name":"The Stack Method"}}},
+{"@type":"ListItem","position":5,"item":{"@type":"Book","name":"Speak Arabic in 1,000 Words: Egyptian Dialect","inLanguage":"en","bookFormat":"https://schema.org/EBook","image":"https://learntospeak.courses/img/arabic-egyptian.jpg","publisher":{"@type":"Organization","name":"The Stack Method"}}},
+{"@type":"ListItem","position":6,"item":{"@type":"Book","name":"Speak Arabic in 1,000 Words: Saudi Dialect","inLanguage":"en","bookFormat":"https://schema.org/EBook","image":"https://learntospeak.courses/img/arabic-saudi.jpg","publisher":{"@type":"Organization","name":"The Stack Method"}}}
+]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@500;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
@@ -201,7 +213,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
 </head>
 <body>
 
-<div class="strip" id="strip">Black Friday: <b>every book is half price</b>, and so is the full set.</div>
+<div class="strip" id="strip">Black Friday: every book is half price, and so is the full set.</div>
 
 <header>
   <div class="wrap">
@@ -225,10 +237,10 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
       <div>
         <h1>Speak a new language</h1>
         <div class="pill">in 1,000 words</div>
-        <p class="lead">One chapter a night. About 30 minutes. About 12 new words, and you use them to speak that same night.</p>
+        <p class="lead" id="heroLead">One chapter a night. About 30 minutes. About 12 new words, and you use them to speak that same night.</p>
         <div class="go">
-          <a class="btn" href="#books">Choose your language</a>
-          <a class="plain" href="#method">How the method works</a>
+          <a class="btn" data-t="cta:hero" href="#books">Choose your language</a>
+          <a class="plain" data-t="cta:method" href="#method">How the method works</a>
         </div>
       </div>
       <div class="fan" aria-label="The six Stack Method books">
@@ -374,22 +386,60 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
   function priceHTML(full){
     return SALE ? gbp(full/2)+' <s>'+gbp(full)+'</s> <em>Half price</em>' : gbp(full);
   }
-  function buyHTML(link,label){
-    return link ? '<a class="btn" rel="noopener" href="'+link+'">'+label+'</a>' : '<span class="btn off">On sale very soon</span>';
+  function buyHTML(link,label,tag){
+    return link ? '<a class="btn" rel="noopener" data-t="buy:'+tag+'" href="'+link+'">'+label+'</a>' : '<span class="btn off">On sale very soon</span>';
   }
-  if(!SALE) $('#strip').style.display='none';
+  function render(){
+    $('#strip').style.display = SALE ? '' : 'none';
+    $('#shelf').innerHTML = BOOKS.map(function(b){
+      return '<article class="book">'+
+        '<img src="img/'+b.img+'.jpg" width="640" height="904" loading="lazy" alt="Cover of the '+b.name+' book">'+
+        '<h3>'+b.name+'</h3>'+
+        '<p>'+b.chapters+' chapters, one a night</p>'+
+        '<div class="price">'+priceHTML(FULL)+'</div>'+
+        buyHTML(b.link,'Buy the '+b.name.replace(/ \(.+\)/,'')+' book',b.img)+
+      '</article>';
+    }).join('');
+    $('#bundlePrice').innerHTML = priceHTML(BUNDLE_FULL);
+    $('#bundleBtn').innerHTML = buyHTML(BUNDLE_LINK,'Buy all six','bundle');
+  }
+  render();
 
-  $('#shelf').innerHTML = BOOKS.map(function(b){
-    return '<article class="book">'+
-      '<img src="img/'+b.img+'.jpg" width="640" height="904" loading="lazy" alt="Cover of the '+b.name+' book">'+
-      '<h3>'+b.name+'</h3>'+
-      '<p>'+b.chapters+' chapters, one a night</p>'+
-      '<div class="price">'+priceHTML(FULL)+'</div>'+
-      buyHTML(b.link,'Buy the '+b.name.replace(/ \(.+\)/,'')+' book')+
-    '</article>';
-  }).join('');
-  $('#bundlePrice').innerHTML = priceHTML(BUNDLE_FULL);
-  $('#bundleBtn').innerHTML = buyHTML(BUNDLE_LINK,'Buy all six');
+  /* ---- live settings from the admin page, and anonymous counting ---- */
+  var SB_URL='https://eilldlbssclhcooapxmt.supabase.co', SB_KEY='sb_publishable_tViO-C9zdgKKgljn9vRkQg_TR3ZVqLQ';
+  function api(path,opts){
+    opts=opts||{}; opts.headers=Object.assign({apikey:SB_KEY,'Content-Type':'application/json'},opts.headers||{});
+    return fetch(SB_URL+'/rest/v1/'+path,opts);
+  }
+  api('stack_settings?select=key,value').then(function(r){return r.ok?r.json():[]}).then(function(rows){
+    var s={}; rows.forEach(function(r){s[r.key]=r.value});
+    var shop=s.shop||{};
+    if(typeof shop.sale==='boolean') SALE=shop.sale;
+    if(+shop.price>0) FULL=+shop.price;
+    if(+shop.bundlePrice>0) BUNDLE_FULL=+shop.bundlePrice;
+    if(typeof shop.bundleLink==='string') BUNDLE_LINK=shop.bundleLink;
+    if(shop.links) BOOKS.forEach(function(b){ if(typeof shop.links[b.img]==='string') b.link=shop.links[b.img]; });
+    var c=s.content||{};
+    if(c.strip) $('#strip').textContent=c.strip;
+    if(c.heroLead) $('#heroLead').textContent=c.heroLead;
+    var seo=s.seo||{};
+    if(seo.title) document.title=seo.title;
+    if(seo.description){var m=document.querySelector('meta[name="description"]'); if(m) m.setAttribute('content',seo.description);}
+    render();
+  }).catch(function(){});
+
+  function track(kind,label){
+    try{
+      var ref=''; try{ if(document.referrer){var u=new URL(document.referrer); if(u.host!==location.host) ref=u.host.replace(/^www\./,'').slice(0,80);} }catch(e){}
+      var w=window.innerWidth, device=w<700?'phone':(w<1100?'tablet':'desktop');
+      api('stack_events',{method:'POST',keepalive:true,headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({kind:kind,label:(label||'').slice(0,60),ref:ref,device:device})}).catch(function(){});
+    }catch(e){}
+  }
+  if(location.hostname==='learntospeak.courses'||location.hostname==='www.learntospeak.courses') track('view','/');
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('[data-t]'); if(a) track('click',a.getAttribute('data-t'));
+  });
 
   /* hero greeting cycles through the six books' hellos */
   var hellos=['¡Hola!','Salaam!','Bonjour !','Hallo!','Ahlan!','MarHaba!'], hi=0, hello=$('#hello');
