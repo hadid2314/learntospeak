@@ -113,6 +113,12 @@ h1{font-size:clamp(2.9rem,6.3vw,5rem);line-height:.9}
 .hello.swap{animation:swap .45s ease}
 @keyframes swap{0%{transform:scale(.86) rotate(-4deg)}60%{transform:scale(1.06) rotate(2deg)}100%{transform:none}}
 
+.facts{background:var(--ink);color:#fff;border-top:var(--line)}
+.facts .wrap{display:grid;grid-template-columns:1fr 1fr;gap:22px 18px;padding-top:30px;padding-bottom:30px}
+@media (min-width:860px){.facts .wrap{grid-template-columns:repeat(4,1fr)}}
+.facts b{display:block;font:400 clamp(1.7rem,3.6vw,2.6rem)/1 var(--head);color:var(--yellow)}
+.facts span{display:block;font-weight:700;margin-top:6px}
+
 /* method */
 .method .grid{display:grid;gap:40px}
 @media (min-width:980px){.method .grid{grid-template-columns:1fr 1fr;gap:80px;align-items:start}}
@@ -190,8 +196,51 @@ summary::after{content:"+";flex:none;display:grid;place-items:center;width:40px;
 details[open] summary::after{transform:rotate(45deg);background:var(--coral);color:#fff}
 details p{margin-bottom:22px}
 
+/* sale code line under a price */
+.code{margin:0;font-weight:800;font-size:.98rem}
+.code b{display:inline-block;padding:2px 10px;border:2px dashed var(--ink);border-radius:8px;background:var(--yellow);letter-spacing:.04em}
+.bundle .code{margin:0 0 16px}
+.bundle .code b{color:var(--ink)}
+
+/* is it for you */
+.fit{background:var(--yellow);border-top:var(--line)}
+.fit .grid{display:grid;gap:26px;margin-top:10px}
+@media (min-width:860px){.fit .grid{grid-template-columns:1fr 1fr;gap:34px}}
+.card{padding:26px 28px;border:var(--line);border-radius:22px;background:#fff;box-shadow:7px 7px 0 var(--ink)}
+.card h3{margin-bottom:14px}
+.card ul{margin:0;padding:0;list-style:none;display:grid;gap:10px;font-weight:600}
+.card li{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.card li::before{content:"";width:24px;height:24px;margin-top:2px;border:2px solid var(--ink);border-radius:50%;background:var(--green)}
+.card.no li::before{background:var(--coral)}
+
+/* how buying works */
+.steps{list-style:none;margin:56px 0 0;padding:0;display:grid;gap:22px;counter-reset:s}
+@media (min-width:860px){.steps{grid-template-columns:repeat(3,1fr)}}
+.steps li{counter-increment:s;padding:22px 24px;border:var(--line);border-radius:20px;background:var(--paper);box-shadow:6px 6px 0 var(--ink);font-weight:600}
+.steps b{display:block;font:400 1.1rem/1.15 var(--head);text-transform:uppercase;margin-bottom:6px}
+.steps b::before{content:counter(s) ". "}
+.safe{margin-top:22px;font-weight:700;max-width:none}
+
+/* reviews + about (both only show once filled in on the admin page) */
+.reviews{background:var(--sky);border-top:var(--line);border-bottom:var(--line)}
+.quotes{display:grid;gap:26px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:34px}
+.quote{margin:0;padding:24px 26px;border:var(--line);border-radius:22px;background:#fff;box-shadow:6px 6px 0 var(--ink)}
+.quote p{font-weight:600;margin-bottom:14px}
+.quote footer{background:none;color:inherit;padding:0;font:400 .95rem/1.2 var(--head);text-transform:uppercase}
+.quote footer span{display:block;font:700 .9rem/1.4 var(--body);text-transform:none;margin-top:4px}
+.about p{white-space:pre-line;max-width:46em}
+
+/* last call */
+.final{background:var(--coral);border-top:var(--line)}
+.final .btn{background:var(--yellow);color:var(--ink);box-shadow:5px 5px 0 var(--ink)}
+.final .btn:hover{box-shadow:7px 7px 0 var(--ink)}
+
 footer{background:var(--ink);color:#fff;padding:34px 0 110px;font-weight:600;font-size:1rem}
 footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-between}
+footer a{text-underline-offset:4px}
+footer a:hover{color:var(--yellow)}
+footer .links{display:flex;flex-wrap:wrap;gap:8px 22px}
+[hidden]{display:none!important}
 @media (min-width:900px){footer{padding-bottom:36px}}
 
 .stick{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:var(--line);transform:translateY(110%);transition:transform .3s ease}
@@ -213,7 +262,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
 </head>
 <body>
 
-<div class="strip" id="strip">Black Friday: every book is half price, and so is the full set.</div>
+<div class="strip" id="strip" hidden></div>
 
 <header>
   <div class="wrap">
@@ -241,6 +290,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
         <div class="go">
           <a class="btn" data-t="cta:hero" href="#books">Choose your language</a>
           <a class="plain" data-t="cta:method" href="#method">How the method works</a>
+          <a class="plain" data-t="cta:sample" data-sample hidden rel="noopener" href="#">Read a free chapter</a>
         </div>
       </div>
       <div class="fan" aria-label="The six Stack Method books">
@@ -252,6 +302,15 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
         <img style="--k:1.5" src="img/french.jpg" width="640" height="904" alt="Learn to speak French in 1,000 words">
         <img style="--k:2.5" src="img/arabic-egyptian.jpg" width="640" height="904" alt="Speak Arabic in 1,000 words, Egyptian dialect">
       </div>
+    </div>
+  </section>
+
+  <section class="facts" aria-label="What is in every book">
+    <div class="wrap">
+      <div><b>1,000</b><span>most useful words</span></div>
+      <div><b>30 min</b><span>a night</span></div>
+      <div><b>4</b><span>exercises every chapter</span></div>
+      <div><b>SAY IT</b><span>guide for every word</span></div>
     </div>
   </section>
 
@@ -317,6 +376,32 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
             <li>Say it out loud. Reading in your head does not count.</li>
           </ol>
         </div>
+        <p style="margin:30px 0 0"><a class="btn" data-t="cta:sample" data-sample hidden rel="noopener" href="#">Read a free chapter</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band fit" id="fit">
+    <div class="wrap">
+      <h2>Is it for you?</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Yes, if you</h3>
+          <ul>
+            <li>Are starting from zero, or learned a bit at school and lost it.</li>
+            <li>Want to speak, to family, in-laws, friends or on a trip.</li>
+            <li>Can give it about 30 minutes most nights.</li>
+            <li>Would rather work through a book than tap on an app.</li>
+          </ul>
+        </div>
+        <div class="card no">
+          <h3>Not really, if you</h3>
+          <ul>
+            <li>Already hold a conversation and want advanced grammar.</li>
+            <li>Need to pass a written exam. These books are about speaking.</li>
+            <li>Want audio lessons. The books are PDFs, with a SAY IT guide for every word.</li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -330,13 +415,33 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
       <div class="bundle" id="bundle">
         <div>
           <h2>Or take all six</h2>
-          <p>Spanish, French, German, Urdu and both Arabic dialects. Bought one by one at full price, the six books come to &pound;210.</p>
+          <p>Spanish, French, German, Urdu and both Arabic dialects. Bought one by one at full price, the six books come to <span id="sixFull">&pound;210</span>.</p>
         </div>
         <div>
           <div class="price" id="bundlePrice"></div>
           <span id="bundleBtn"></span>
         </div>
       </div>
+
+      <ol class="steps" aria-label="How buying works">
+        <li><b>Pick your book</b>Tap buy on one language, or take all six.</li>
+        <li><b>Pay on Payhip</b>The checkout is run by Payhip, which handles the payment. We never see your card details.</li>
+        <li><b>Download straight away</b>You get the PDF on screen and by email as soon as the payment goes through.</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band reviews" id="reviews" hidden>
+    <div class="wrap">
+      <h2>What learners say</h2>
+      <div class="quotes" id="quotes"></div>
+    </div>
+  </section>
+
+  <section class="band about" id="about" hidden>
+    <div class="wrap">
+      <h2 id="aboutTitle">Who made these</h2>
+      <p class="lead" id="aboutText"></p>
     </div>
   </section>
 
@@ -349,16 +454,32 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
         <details><summary>How do I know how to say the words?</summary><p>Every word has a SAY IT column written in plain English letters, and each book opens with a short guide to the sounds it uses.</p></details>
         <details><summary>What do I actually get?</summary><p>A PDF book. Read it on a phone, tablet or laptop, or print it. The exercises have lines to write on.</p></details>
         <details><summary>Which Arabic book should I pick?</summary><p>There are two: Egyptian dialect and Saudi dialect. Pick the one spoken where you want to use it. Both give each word in English letters and in Arabic script.</p></details>
-        <details><summary>Can I get a refund?</summary><p>These are digital downloads, so all sales are final. The books are for your own use, so please don&rsquo;t share the file.</p></details>
+        <details><summary>How do I get the book after I pay?</summary><p>The download appears on screen as soon as you pay, and the same link is emailed to you. If the email does not turn up, check your junk folder first.</p></details>
+        <details><summary>Is there audio?</summary><p>No. Each word has a SAY IT column written in plain English letters, so you can say it without audio.</p></details>
+        <details><summary>How far will 1,000 words get me?</summary><p>Far enough to hold everyday conversations: introducing yourself, family, food, plans, how you feel. It is the foundation. Step two is using it with real people, and the books are built to get you to that point.</p></details>
+        <details><summary>Can I get a refund?</summary><p>You get the file straight away, so we don&rsquo;t refund a change of mind. If your file is faulty or will not open, get in touch and we will fix it or refund you. The books are for your own use, so please don&rsquo;t share the file.</p></details>
       </div>
+    </div>
+  </section>
+
+  <section class="band final">
+    <div class="wrap">
+      <h2>Night 1 can be tonight</h2>
+      <p class="lead">About 30 minutes, about 12 words, and you finish by saying them out loud.</p>
+      <p style="margin:26px 0 0"><a class="btn" data-t="cta:final" href="#books">Choose your language</a></p>
     </div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>The Stack Method</span>
-    <span>PDF language books</span>
+    <span>The Stack Method &middot; PDF language books</span>
+    <span class="links">
+      <a id="footMail" hidden href="#">Contact</a>
+      <a id="footIg" hidden rel="noopener" href="#">Instagram</a>
+      <a id="footTt" hidden rel="noopener" href="#">TikTok</a>
+      <a href="terms.html">Terms and privacy</a>
+    </span>
     <span>&copy; 2026 The Stack Method</span>
   </div>
 </footer>
@@ -368,7 +489,13 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
 <script>
 (function(){
   /* ============ SETTINGS ============ */
-  var SALE = true;            // Black Friday on/off. false = full prices, no strip.
+  var SALE = true;            // sale on/off. false = full prices, no strip.
+  var DISCOUNT = 50, BUNDLE_DISCOUNT = 50;   // percent off one book / off the six-book set
+  var SALE_NAME = 'Black Friday';            // shown at the start of the top strip
+  var BADGE = '';             // label next to the price. empty = "Half price" or "30% off"
+  var CODE = '';              // Payhip discount code buyers must type, if any
+  var ENDS = '';              // e.g. 2026-11-30T23:30. The sale turns itself off after this.
+  var STRIP = '';             // custom strip text. empty = written from the settings above
   var FULL = 35, BUNDLE_FULL = 99;
   var BUNDLE_LINK = '';       // Payhip link for the six-book set
   var BOOKS = [
@@ -383,25 +510,68 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
 
   var $=function(s){return document.querySelector(s)};
   var gbp=function(v){return '£'+(v%1?v.toFixed(2):v)};
-  function priceHTML(full){
-    return SALE ? gbp(full/2)+' <s>'+gbp(full)+'</s> <em>Half price</em>' : gbp(full);
+  var esc=function(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  function endTime(){var t=ENDS?Date.parse(ENDS):NaN; return isNaN(t)?null:t}
+  function saleOn(){var t=endTime(); return SALE && !(t&&Date.now()>t)}
+  function cut(full,pct){return Math.round(full*(100-pct))/100}
+  function badge(pct){return BADGE||(pct===50?'Half price':pct+'% off')}
+  function priceHTML(full,pct){
+    return saleOn()&&pct>0 ? gbp(cut(full,pct))+' <s>'+gbp(full)+'</s> <em>'+esc(badge(pct))+'</em>' : gbp(full);
+  }
+  function codeHTML(pct){
+    return saleOn()&&pct>0&&CODE ? '<p class="code">Use code <b>'+esc(CODE)+'</b> at checkout</p>' : '';
+  }
+  function stripText(){
+    if(STRIP) return STRIP;
+    var d=DISCOUNT,b=BUNDLE_DISCOUNT,off=function(p){return p===50?'half price':p+'% off'},t;
+    if(d>0&&b>0) t=d===b?'Every book is '+off(d)+', and so is the full set.':'Every book is '+off(d)+'. The full set is '+off(b)+'.';
+    else if(d>0) t='Every book is '+off(d)+'.';
+    else if(b>0) t='The full set of six is '+off(b)+'.';
+    else return '';
+    if(SALE_NAME) t=SALE_NAME+': '+t.charAt(0).toLowerCase()+t.slice(1);
+    if(CODE) t+=' Use code '+CODE+' at checkout.';
+    var e=endTime(); if(e) t+=' Ends '+new Date(e).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'.';
+    return t;
   }
   function buyHTML(link,label,tag){
-    return link ? '<a class="btn" rel="noopener" data-t="buy:'+tag+'" href="'+link+'">'+label+'</a>' : '<span class="btn off">On sale very soon</span>';
+    return link ? '<a class="btn" rel="noopener" data-t="buy:'+tag+'" href="'+esc(link)+'">'+label+'</a>' : '<span class="btn off">On sale very soon</span>';
   }
   function render(){
-    $('#strip').style.display = SALE ? '' : 'none';
+    var st=saleOn()?stripText():'';
+    $('#strip').textContent=st; $('#strip').hidden=!st;
     $('#shelf').innerHTML = BOOKS.map(function(b){
       return '<article class="book">'+
         '<img src="img/'+b.img+'.jpg" width="640" height="904" loading="lazy" alt="Cover of the '+b.name+' book">'+
         '<h3>'+b.name+'</h3>'+
         '<p>'+b.chapters+' chapters, one a night</p>'+
-        '<div class="price">'+priceHTML(FULL)+'</div>'+
+        '<div class="price">'+priceHTML(FULL,DISCOUNT)+'</div>'+
+        codeHTML(DISCOUNT)+
         buyHTML(b.link,'Buy the '+b.name.replace(/ \(.+\)/,'')+' book',b.img)+
       '</article>';
     }).join('');
-    $('#bundlePrice').innerHTML = priceHTML(BUNDLE_FULL);
-    $('#bundleBtn').innerHTML = buyHTML(BUNDLE_LINK,'Buy all six','bundle');
+    $('#bundlePrice').innerHTML = priceHTML(BUNDLE_FULL,BUNDLE_DISCOUNT);
+    $('#bundleBtn').innerHTML = codeHTML(BUNDLE_DISCOUNT)+buyHTML(BUNDLE_LINK,'Buy all six','bundle');
+    $('#sixFull').textContent = gbp(FULL*BOOKS.length);
+  }
+  function okUrl(u){return typeof u==='string'&&/^https:\/\/[^\s"'<>]+$/.test(u)}
+  function extras(x){
+    if(okUrl(x.sampleLink)) [].forEach.call(document.querySelectorAll('[data-sample]'),function(a){a.href=x.sampleLink;a.hidden=false});
+    if(typeof x.email==='string'&&/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(x.email)){$('#footMail').href='mailto:'+x.email;$('#footMail').hidden=false}
+    if(okUrl(x.instagram)){$('#footIg').href=x.instagram;$('#footIg').hidden=false}
+    if(okUrl(x.tiktok)){$('#footTt').href=x.tiktok;$('#footTt').hidden=false}
+    if(x.aboutText){ if(x.aboutTitle) $('#aboutTitle').textContent=x.aboutTitle; $('#aboutText').textContent=x.aboutText; $('#about').hidden=false }
+    var rs=(Array.isArray(x.reviews)?x.reviews:[]).filter(function(r){return r&&r.text&&r.name});
+    if(rs.length){
+      var box=$('#quotes'); box.textContent='';
+      rs.slice(0,12).forEach(function(r){
+        var q=document.createElement('blockquote'); q.className='quote';
+        var p=document.createElement('p'); p.textContent=r.text;
+        var f=document.createElement('footer'); f.textContent=r.name;
+        if(r.book){var sp=document.createElement('span'); sp.textContent=r.book; f.appendChild(sp)}
+        q.appendChild(p); q.appendChild(f); box.appendChild(q);
+      });
+      $('#reviews').hidden=false;
+    }
   }
   render();
 
@@ -415,17 +585,26 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:space-bet
     var s={}; rows.forEach(function(r){s[r.key]=r.value});
     var shop=s.shop||{};
     if(typeof shop.sale==='boolean') SALE=shop.sale;
+    var pc=function(v,d){v=+v; return v>=0&&v<=95&&v===v?Math.round(v):d};
+    if(shop.discount!=null) DISCOUNT=pc(shop.discount,DISCOUNT);
+    BUNDLE_DISCOUNT = shop.bundleDiscount!=null ? pc(shop.bundleDiscount,DISCOUNT) : DISCOUNT;
+    if(typeof shop.saleName==='string') SALE_NAME=shop.saleName.slice(0,30);
+    if(typeof shop.badge==='string') BADGE=shop.badge.slice(0,20);
+    if(typeof shop.code==='string') CODE=shop.code.slice(0,30);
+    if(typeof shop.ends==='string') ENDS=shop.ends;
     if(+shop.price>0) FULL=+shop.price;
     if(+shop.bundlePrice>0) BUNDLE_FULL=+shop.bundlePrice;
     if(typeof shop.bundleLink==='string') BUNDLE_LINK=shop.bundleLink;
-    if(shop.links) BOOKS.forEach(function(b){ if(typeof shop.links[b.img]==='string') b.link=shop.links[b.img]; });
+    if(shop.links) BOOKS.forEach(function(b){ var l=shop.links[b.img]; if(typeof l==='string') b.link=okUrl(l)?l:''; });
+    if(!okUrl(BUNDLE_LINK)) BUNDLE_LINK='';
     var c=s.content||{};
-    if(c.strip) $('#strip').textContent=c.strip;
+    if(c.strip) STRIP=c.strip;
     if(c.heroLead) $('#heroLead').textContent=c.heroLead;
     var seo=s.seo||{};
     if(seo.title) document.title=seo.title;
     if(seo.description){var m=document.querySelector('meta[name="description"]'); if(m) m.setAttribute('content',seo.description);}
     render();
+    extras(s.extras||{});
   }).catch(function(){});
 
   function track(kind,label){

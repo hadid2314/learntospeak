@@ -47,7 +47,7 @@ button:disabled{opacity:.5;cursor:default}
 
 label{display:block;font-weight:700;margin:0 0 6px}
 .hint{display:block;font-weight:500;color:var(--dim);font-size:.9rem;margin-top:5px}
-input[type=text],input[type=email],input[type=password],input[type=number],input[type=url],textarea,select{
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=url],input[type=datetime-local],textarea,select{
   width:100%;min-height:46px;padding:11px 14px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--text);font:500 1rem var(--body)}
 textarea{min-height:92px;resize:vertical}
 input:focus,textarea:focus,select:focus{border-color:var(--yellow);outline:none}
@@ -63,7 +63,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--yellow);outline:none}
 .msg.bad{color:var(--coral)}.msg.good{color:var(--green)}
 
 /* shell */
-.shell{display:grid;min-height:100%}
+.shell{display:grid;grid-template-columns:minmax(0,1fr);min-height:100%}
+aside,main{min-width:0}
 @media (min-width:900px){.shell{grid-template-columns:240px 1fr}}
 aside{background:var(--panel);border-bottom:2px solid var(--line);padding:18px}
 @media (min-width:900px){aside{border-bottom:0;border-right:2px solid var(--line);padding:26px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}}
@@ -128,6 +129,12 @@ th{color:var(--dim);font-weight:700}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 .scroll{overflow-x:auto}
 .savebar{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.preview{background:var(--bg);border:2px dashed var(--line);border-radius:14px;padding:16px 18px;margin:4px 0 14px}
+.preview b{color:var(--yellow)}
+.preview p{margin:0 0 6px;max-width:none}
+.preview p:last-child{margin:0}
+.rev{border:2px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.rev .field:last-of-type{margin-bottom:10px}
 </style>
 </head>
 <body>
@@ -151,6 +158,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
       <button role="tab" aria-selected="true" data-tab="overview">Overview</button>
       <button role="tab" aria-selected="false" data-tab="shop">Shop and prices</button>
       <button role="tab" aria-selected="false" data-tab="words">Words on the site</button>
+      <button role="tab" aria-selected="false" data-tab="extras">Reviews, sample, contact</button>
       <button role="tab" aria-selected="false" data-tab="seo">Google and sharing</button>
       <button role="tab" aria-selected="false" data-tab="sales">Sales</button>
       <button role="tab" aria-selected="false" data-tab="team" id="teamTab" hidden>Team logins</button>
@@ -195,9 +203,21 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     <section id="tab-shop" hidden>
       <div class="head"><div><h2>Shop and prices</h2><p class="dim">Changes show on the site as soon as you save.</p></div></div>
       <div class="panel">
-        <h3>Sale</h3>
-        <label class="switch"><input type="checkbox" id="sale"> <span>Half-price sale is on</span></label>
-        <span class="hint">On: the site shows the full price crossed out and half price next to it, plus the strip at the top. Set the same discount on Payhip, or buyers will see a different price at checkout.</span>
+        <h3>Sale and discount</h3>
+        <label class="switch"><input type="checkbox" id="sale"> <span>Sale is on</span></label>
+        <span class="hint" style="margin-bottom:18px">On: the site shows the full price crossed out with the sale price next to it, plus the strip at the top.</span>
+        <div class="row three">
+          <div class="field"><label for="discount">Off one book (%)</label><input id="discount" type="number" min="0" max="95" step="1"><span class="hint">0 = no discount on single books.</span></div>
+          <div class="field"><label for="bundleDiscount">Off all six (%)</label><input id="bundleDiscount" type="number" min="0" max="95" step="1"><span class="hint">Can be different from the single books.</span></div>
+          <div class="field"><label for="saleName">Sale name</label><input id="saleName" type="text" maxlength="30" placeholder="Black Friday"><span class="hint">Starts the top strip. Can be empty.</span></div>
+        </div>
+        <div class="row three">
+          <div class="field"><label for="badge">Label next to the price</label><input id="badge" type="text" maxlength="20" placeholder="Made for you"><span class="hint">Empty: it says "Half price" or "30% off" by itself.</span></div>
+          <div class="field"><label for="code">Discount code to show</label><input id="code" type="text" maxlength="30" autocomplete="off" placeholder="e.g. BLACKFRIDAY50"><span class="hint">Fill in if buyers must type a Payhip coupon code. Empty if Payhip already charges the sale price.</span></div>
+          <div class="field"><label for="ends">Sale ends</label><input id="ends" type="datetime-local"><span class="hint">Optional. The site drops back to full price after this.</span></div>
+        </div>
+        <div class="preview" id="salePreview" aria-live="polite"></div>
+        <span class="hint">This only changes what the site shows. Payhip decides what buyers are charged, so set the same discount or coupon there, with the same end time.</span>
       </div>
       <div class="panel">
         <h3>Full prices</h3>
@@ -218,10 +238,39 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     <section id="tab-words" hidden>
       <div class="head"><div><h2>Words on the site</h2><p class="dim">Leave a box empty to use the site's built-in wording.</p></div></div>
       <div class="panel">
-        <div class="field"><label for="strip">Strip at the very top</label><input id="strip" type="text" maxlength="120"><span class="hint">Only shows while the sale is on.</span></div>
+        <div class="field"><label for="strip">Strip at the very top</label><input id="strip" type="text" maxlength="120"><span class="hint">Only shows while the sale is on. Empty: it is written for you from the sale settings (name, discount, code, end date).</span></div>
         <div class="field"><label for="heroLead">Line under the main headline</label><textarea id="heroLead" maxlength="240"></textarea></div>
       </div>
       <div class="savebar"><button id="saveWords" type="button">Save words</button><span class="msg" id="wordsMsg" role="status"></span></div>
+    </section>
+
+    <!-- EXTRAS -->
+    <section id="tab-extras" hidden>
+      <div class="head"><div><h2>Reviews, sample, contact</h2><p class="dim">Each of these stays hidden on the site until you fill it in.</p></div></div>
+      <div class="panel">
+        <h3>Free sample chapter</h3>
+        <div class="field"><label for="sampleLink">Link to the free sample</label><input id="sampleLink" type="url" placeholder="https://payhip.com/b/..."><span class="hint">Best way: add a free product on Payhip with a sample chapter as the file, and paste its link. Payhip then collects the email of everyone who downloads it. Adds a "Read a free chapter" button in two places.</span></div>
+      </div>
+      <div class="panel">
+        <h3>Contact and socials</h3>
+        <div class="row three">
+          <div class="field"><label for="xEmail">Contact email</label><input id="xEmail" type="email" autocomplete="off"><span class="hint">Shown in the footer and on the terms page. UK sellers must show a way to contact them.</span></div>
+          <div class="field"><label for="xIg">Instagram link</label><input id="xIg" type="url" placeholder="https://instagram.com/..."></div>
+          <div class="field"><label for="xTt">TikTok link</label><input id="xTt" type="url" placeholder="https://tiktok.com/@..."></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Who made these</h3>
+        <div class="field"><label for="aboutTitle">Heading</label><input id="aboutTitle" type="text" maxlength="60" placeholder="Who made these"></div>
+        <div class="field"><label for="aboutText">Your story</label><textarea id="aboutText" maxlength="900" style="min-height:150px"></textarea><span class="hint">A few lines on who you both are and why you made the books. Buyers trust a real person more than a faceless shop.</span></div>
+      </div>
+      <div class="panel">
+        <h3>Reviews</h3>
+        <p class="dim">Only add words a real buyer or tester sent you, and keep the message they sent. Made-up reviews are against UK law.</p>
+        <div id="revList"></div>
+        <button class="ghost small" id="addRev" type="button">Add a review</button>
+      </div>
+      <div class="savebar"><button id="saveExtras" type="button">Save</button><span class="msg" id="extrasMsg" role="status"></span></div>
     </section>
 
     <!-- SEO -->
@@ -296,7 +345,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
   var sb=null; try{sb=window.supabase.createClient(SB_URL,SB_KEY)}catch(e){}
   function say(el,text,kind){el.textContent=text||'';el.className='msg'+(kind?' '+kind:'')}
   var gbp=function(v){v=+v||0;return '£'+(v%1?v.toFixed(2):v.toLocaleString('en-GB'))};
-  var settings={shop:{},content:{},seo:{}};
+  var settings={shop:{},content:{},seo:{},extras:{}};
 
   /* ---------- sign in ---------- */
   async function boot(){
@@ -349,13 +398,21 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     (r.data||[]).forEach(function(x){settings[x.key]=x.value||{}});
     var shop=settings.shop;
     $('#sale').checked = typeof shop.sale==='boolean'?shop.sale:true;
+    $('#discount').value = shop.discount!=null?shop.discount:50;
+    $('#bundleDiscount').value = shop.bundleDiscount!=null?shop.bundleDiscount:$('#discount').value;
+    $('#saleName').value = typeof shop.saleName==='string'?shop.saleName:'Black Friday';
+    $('#badge').value = shop.badge||''; $('#code').value = shop.code||''; $('#ends').value = shop.ends||'';
     $('#price').value = shop.price||DEFAULTS.price;
     $('#bundlePrice').value = shop.bundlePrice||DEFAULTS.bundlePrice;
     BOOKS.forEach(function(b){$('#link-'+b[0]).value=(shop.links&&shop.links[b[0]])||''});
     $('#link-bundle').value=shop.bundleLink||'';
     $('#strip').value=settings.content.strip||''; $('#heroLead').value=settings.content.heroLead||'';
     $('#seoTitle').value=settings.seo.title||DEFAULTS.title; $('#seoDesc').value=settings.seo.description||DEFAULTS.description;
-    seoPreview();
+    var x=settings.extras||{};
+    $('#sampleLink').value=x.sampleLink||''; $('#xEmail').value=x.email||''; $('#xIg').value=x.instagram||''; $('#xTt').value=x.tiktok||'';
+    $('#aboutTitle').value=x.aboutTitle||''; $('#aboutText').value=x.aboutText||'';
+    $('#revList').textContent=''; (Array.isArray(x.reviews)?x.reviews:[]).forEach(addRev);
+    seoPreview(); salePreview();
   }
   async function save(key,value,msgEl){
     say(msgEl,'Saving...');
@@ -371,14 +428,84 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
     if(bad.length){say($('#shopMsg'),'These links are not Payhip links: '+bad.join(', ')+'. Fix them, then save.','bad');return}
     var price=+$('#price').value, bundle=+$('#bundlePrice').value;
     if(!(price>0)||!(bundle>0)){say($('#shopMsg'),'Prices must be more than 0.','bad');return}
-    save('shop',{sale:$('#sale').checked,price:price,bundlePrice:bundle,links:links,bundleLink:bl},$('#shopMsg'));
+    var d=pct('#discount'), bd=pct('#bundleDiscount');
+    if(d===null||bd===null){say($('#shopMsg'),'Discounts must be whole numbers from 0 to 95.','bad');return}
+    var on=$('#sale').checked;
+    if(on&&d===0&&bd===0){say($('#shopMsg'),'The sale is on but both discounts are 0. Set a discount, or switch the sale off.','bad');return}
+    var ends=$('#ends').value;
+    if(on&&ends&&Date.parse(ends)<Date.now()){say($('#shopMsg'),'The end time is in the past, so the sale would not show. Change it or clear it.','bad');return}
+    save('shop',{sale:on,discount:d,bundleDiscount:bd,saleName:$('#saleName').value.trim(),badge:$('#badge').value.trim(),
+      code:$('#code').value.trim(),ends:ends,price:price,bundlePrice:bundle,links:links,bundleLink:bl},$('#shopMsg'));
+  });
+
+  /* sale preview: the same sums the site does */
+  function pct(sel){var raw=$(sel).value.trim(); if(raw==='') return 0; var v=+raw; return (v>=0&&v<=95&&Math.round(v)===v)?v:null}
+  function salePreview(){
+    var box=$('#salePreview'); box.textContent='';
+    function line(label,text){var p=document.createElement('p');var b=document.createElement('b');b.textContent=label+' ';p.appendChild(b);p.appendChild(document.createTextNode(text));box.appendChild(p)}
+    var price=+$('#price').value||DEFAULTS.price, bundle=+$('#bundlePrice').value||DEFAULTS.bundlePrice;
+    var d=pct('#discount'), bd=pct('#bundleDiscount'), on=$('#sale').checked, ends=$('#ends').value;
+    if(d===null||bd===null){line('Check the numbers:','discounts must be whole numbers from 0 to 95.');return}
+    if(on&&ends&&Date.parse(ends)<Date.now()) on=false;
+    var lab=$('#badge').value.trim(), code=$('#code').value.trim(), name=$('#saleName').value.trim();
+    function was(full,p){var now=Math.round(full*(100-p))/100; return on&&p>0? gbp(now)+', with '+gbp(full)+' crossed out and "'+(lab||(p===50?'Half price':p+'% off'))+'"' : gbp(full)+' (full price)'}
+    line('One book shows:',was(price,d)); line('All six shows:',was(bundle,bd));
+    if(!on){line('Top strip:','hidden, because the sale is off'+(($('#sale').checked)?' (the end time has passed)':'')+'.');return}
+    var custom=$('#strip').value.trim(), off=function(p){return p===50?'half price':p+'% off'}, t;
+    if(custom) t=custom;
+    else{
+      if(d>0&&bd>0) t=d===bd?'Every book is '+off(d)+', and so is the full set.':'Every book is '+off(d)+'. The full set is '+off(bd)+'.';
+      else if(d>0) t='Every book is '+off(d)+'.'; else if(bd>0) t='The full set of six is '+off(bd)+'.'; else t='';
+      if(t&&name) t=name+': '+t.charAt(0).toLowerCase()+t.slice(1);
+      if(t&&code) t+=' Use code '+code+' at checkout.';
+      if(t&&ends) t+=' Ends '+new Date(ends).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})+'.';
+    }
+    line('Top strip:',t||'hidden (no discount set).');
+    if(code) line('Under each price:','Use code '+code+' at checkout');
+  }
+  ['#sale','#discount','#bundleDiscount','#saleName','#badge','#code','#ends','#price','#bundlePrice','#strip'].forEach(function(id){
+    $(id).addEventListener('input',salePreview); $(id).addEventListener('change',salePreview);
+  });
+
+  /* ---------- extras ---------- */
+  function addRev(r){
+    r=r||{}; var n=Date.now()+'-'+Math.floor(Math.random()*1e6);
+    var d=document.createElement('div'); d.className='rev';
+    function field(label,key,el,max){
+      var f=document.createElement('div'); f.className='field';
+      var l=document.createElement('label'); l.textContent=label; l.htmlFor='rev-'+key+'-'+n;
+      el.id='rev-'+key+'-'+n; el.dataset.k=key; el.maxLength=max; el.value=r[key]||''; if(el.tagName==='INPUT') el.type='text';
+      f.appendChild(l); f.appendChild(el); return f;
+    }
+    d.appendChild(field('What they said','text',document.createElement('textarea'),400));
+    var row=document.createElement('div'); row.className='row two';
+    row.appendChild(field('Their name','name',document.createElement('input'),40));
+    row.appendChild(field('Which book (optional)','book',document.createElement('input'),40));
+    d.appendChild(row);
+    var b=document.createElement('button'); b.type='button'; b.className='ghost small'; b.textContent='Remove this review';
+    b.addEventListener('click',function(){d.remove()}); d.appendChild(b);
+    $('#revList').appendChild(d);
+  }
+  $('#addRev').addEventListener('click',function(){addRev()});
+  $('#saveExtras').addEventListener('click',function(){
+    var bad=[], url=function(sel,name){var v=$(sel).value.trim(); if(v&&!/^https:\/\/[^\s"'<>]+$/.test(v)) bad.push(name); return v};
+    var sample=url('#sampleLink','the sample link'), ig=url('#xIg','the Instagram link'), tt=url('#xTt','the TikTok link');
+    var em=$('#xEmail').value.trim(); if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) bad.push('the email');
+    if(bad.length){say($('#extrasMsg'),'Check '+bad.join(', ')+'. Links must start with https://','bad');return}
+    var reviews=[], half=false;
+    all('#revList .rev').forEach(function(d){
+      var o={}; [].forEach.call(d.querySelectorAll('[data-k]'),function(e){o[e.dataset.k]=e.value.trim()});
+      if(o.text&&o.name) reviews.push(o); else if(o.text||o.name||o.book) half=true;
+    });
+    if(half){say($('#extrasMsg'),'Each review needs both the words and a name. Finish it or remove it.','bad');return}
+    save('extras',{sampleLink:sample,email:em,instagram:ig,tiktok:tt,aboutTitle:$('#aboutTitle').value.trim(),aboutText:$('#aboutText').value.trim(),reviews:reviews},$('#extrasMsg'));
   });
   $('#saveWords').addEventListener('click',function(){
     save('content',{strip:$('#strip').value.trim(),heroLead:$('#heroLead').value.trim()},$('#wordsMsg'));
   });
 
   /* ---------- overview ---------- */
-  var NICE={'cta:hero':'Hero button','cta:method':'"How the method works" link','buy:bundle':'Buy: all six books'};
+  var NICE={'cta:hero':'Hero button','cta:method':'"How the method works" link','cta:sample':'Read a free chapter','cta:final':'Bottom "Choose your language" button','buy:bundle':'Buy: all six books'};
   BOOKS.forEach(function(b){NICE['buy:'+b[0]]='Buy: '+b[1]});
   function bars(el,rows,labelKey){
     el.textContent='';
